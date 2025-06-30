@@ -1,24 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Subway Runner</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Subway Surf Advanced</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <button id="fullscreenBtn">Fullscreen</button>
+
   <canvas id="gameCanvas" width="480" height="640"></canvas>
-  <div id="shopScreen" style="display:none;">
+
+  <div id="shopScreen" class="overlay">
     <h2>Shop</h2>
-    <div>Select Character:</div>
-    <button onclick="selectChar('default')">Default</button>
-    <button onclick="selectChar('ninja')">Ninja</button>
-    <div>Select Hoverboard:</div>
-    <button onclick="selectBoard('default')">Default</button>
-    <button onclick="selectBoard('fire')">Fire</button>
-    <button onclick="startGame()">Play!</button>
+    <div>
+      <h3>Select Character</h3>
+      <div id="characters"></div>
+    </div>
+    <div>
+      <h3>Select Hoverboard</h3>
+      <div id="hoverboards"></div>
+    </div>
+    <button id="startBtn">Start Game</button>
   </div>
-  <script src="game.js"></script>
+
+  <div id="gameOverScreen" class="overlay hidden">
+    <h2>Game Over</h2>
+    <p id="finalScore"></p>
+    <button id="restartBtn">Restart</button>
+  </div>
+
+<script src="game.js"></script>
 </body>
 </html>
-<button id="fullscreenBtn">Full Screen</button>

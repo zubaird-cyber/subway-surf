@@ -104,3 +104,47 @@ function gameLoop(){ update(); draw(); requestAnimationFrame(gameLoop); }
 // ——— Start ———————————————————————————————— //
 canvas.style.display = 'none';
 document.getElementById("shopScreen").style.display = 'block';
+function drawBackground() {
+  // Draw track base
+  ctx.fillStyle = "#444"; // dark gray for track
+  ctx.fillRect(80, 0, 320, canvas.height);
+
+  // Draw rails
+  ctx.strokeStyle = "#bbb";
+  ctx.lineWidth = 6;
+  for (let i = 0; i < canvas.height; i += 40) {
+    // Left rail
+    ctx.beginPath();
+    ctx.moveTo(100, i);
+    ctx.lineTo(100, i + 20);
+    ctx.stroke();
+    // Right rail
+    ctx.beginPath();
+    ctx.moveTo(360, i);
+    ctx.lineTo(360, i + 20);
+    ctx.stroke();
+  }
+
+  // Draw cross ties (horizontal wooden beams)
+  ctx.strokeStyle = "#86592d";
+  ctx.lineWidth = 8;
+  for (let y = 0; y < canvas.height; y += 40) {
+    ctx.beginPath();
+    ctx.moveTo(100, y + 10);
+    ctx.lineTo(360, y + 10);
+    ctx.stroke();
+  }
+}
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBackground();
+
+  // Draw player, trains, coins...
+  ctx.fillStyle = "blue";
+  ctx.fillRect(laneX[playerLane] - 20, y + jumpY, 40, 50);
+
+  trains.forEach(t => t.draw());
+  coins.forEach(c => c.draw());
+
+  // HUD...
+}

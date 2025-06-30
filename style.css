@@ -1,0 +1,4 @@
+body, html { margin:0; padding:0; background:#222; display:flex; justify-content:center; align-items:center; height:100vh; color:white; font-family:sans-serif; }
+canvas { border:2px solid white; background: linear-gradient(#ccc,#eee); }
+#shopScreen { text-align:center; }
+button { margin:5px; padding:10px; }

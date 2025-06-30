@@ -159,3 +159,49 @@ fullscreenBtn.addEventListener("click", () => {
     document.exitFullscreen();
   }
 });
+let trackOffset = 0;
+
+function drawBackground() {
+  // Track base
+  ctx.fillStyle = "#444";
+  ctx.fillRect(80, 0, 320, canvas.height);
+
+  // Rails
+  ctx.strokeStyle = "#bbb";
+  ctx.lineWidth = 6;
+  for (let i = 0; i < canvas.height; i += 40) {
+    let y = (i + trackOffset) % canvas.height;
+    // Left rail dashed segment
+    ctx.beginPath();
+    ctx.moveTo(100, y);
+    ctx.lineTo(100, y + 20);
+    ctx.stroke();
+
+    // Right rail dashed segment
+    ctx.beginPath();
+    ctx.moveTo(360, y);
+    ctx.lineTo(360, y + 20);
+    ctx.stroke();
+  }
+
+  // Cross ties
+  ctx.strokeStyle = "#86592d";
+  ctx.lineWidth = 8;
+  for (let y = 0; y < canvas.height; y += 40) {
+    let tieY = (y + trackOffset) % canvas.height;
+    ctx.beginPath();
+    ctx.moveTo(100, tieY + 10);
+    ctx.lineTo(360, tieY + 10);
+    ctx.stroke();
+  }
+}
+
+// Update track offset inside update() or gameLoop()
+function update() {
+  // Existing update code ...
+
+  trackOffset += gameSpeed;
+  if (trackOffset > 40) trackOffset -= 40;
+
+  // The rest of update...
+}

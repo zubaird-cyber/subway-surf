@@ -16,6 +16,7 @@ canvas.addEventListener("touchstart", e=>{
   if(dt<300) activateHoverboard();
   lastTap=now;
 });
+
 canvas.addEventListener("touchend", e=>{
   const t=e.changedTouches[0], dx=t.screenX-tSX, dy=t.screenY-tSY;
   if(Math.abs(dx)>Math.abs(dy)){
@@ -70,6 +71,7 @@ function checkCollisions(){
   });
   coins.forEach((c,i)=>{
     if(c.lane===playerLane && c.y+10>y+jumpY && c.y<y+50+jumpY){ score+=100; coins.splice(i,1); }
+
   });
 }
 
@@ -88,7 +90,9 @@ function update(){
   trains = trains.filter(t => t.y < canvas.height);
   coins = coins.filter(c => c.y < canvas.height);
   score++;
+
 }
+
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle="blue"; ctx.fillRect(laneX[playerLane]-20, y+jumpY, 40, 50);
@@ -99,6 +103,7 @@ function draw(){
   ctx.fillText(`Health:${health}`,10,60);
   if(hoverboardActive) ctx.fillText(`Hover:${(hoverboardTimer/60).toFixed(1)}s`,10,90);
 }
+
 function gameLoop(){ update(); draw(); requestAnimationFrame(gameLoop); }
 
 // ——— Start ———————————————————————————————— //

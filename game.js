@@ -1,212 +1,222 @@
-// ——— Setup —————————————————————————————— //
-const canvas = document.getElementById("gameCanvas"), ctx = canvas.getContext("2d");
-const laneX = [120,240,360];
-let playerLane = 1, y=500, jumpY=0, isJump=false, velY=0;
-let trains=[], coins=[], score=0, health=3, gameSpeed=5;
-let hoverboardActive=false, hoverboardTimer=0;
-let char = localStorage.getItem("character") || "default";
-let board = localStorage.getItem("hoverboard") || "default";
+(() => {
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
 
-// ——— Controls ———————————————————————————— //
-let lastTap=0, tSX=0, tSY=0;
-canvas.addEventListener("touchstart", e=>{
-  const t=e.changedTouches[0];
-  tSX=t.screenX; tSY=t.screenY;
-  const now=Date.now(), dt=now-lastTap;
-  if(dt<300) activateHoverboard();
-  lastTap=now;
-});
+  const fullscreenBtn = document.getElementById("fullscreenBtn");
+  const shopScreen = document.getElementById("shopScreen");
+  const gameOverScreen = document.getElementById("gameOverScreen");
+  const finalScoreEl = document.getElementById("finalScore");
+  const restartBtn = document.getElementById("restartBtn");
+  const startBtn = document.getElementById("startBtn");
 
-canvas.addEventListener("touchend", e=>{
-  const t=e.changedTouches[0], dx=t.screenX-tSX, dy=t.screenY-tSY;
-  if(Math.abs(dx)>Math.abs(dy)){
-    if(dx>50 && playerLane<2) playerLane++;
-    else if(dx<-50 && playerLane>0) playerLane--;
-  } else {
-    if(dy>50) roll();
-    else if(dy<-50 && !isJump) jump();
-  }
-});
+  const charactersContainer = document.getElementById("characters");
+  const hoverboardsContainer = document.getElementById("hoverboards");
 
-// ——— Mechanics ———————————————————————————— //
-function jump(){ isJump=true; velY=-15; }
-function roll(){ /* Optional roll logic here */ }
-function activateHoverboard(){
-  if(!hoverboardActive){
-    hoverboardActive=true; hoverboardTimer=900;
-  }
-}
+  const laneCount = 3;
+  const laneX = [120, 240, 360];
+  const gravity = 1;
+  const hoverboardDuration = 15000; // ms
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
 
-// ——— Entities —————————————————————————————— //
-class Train {
-  constructor(lane){ this.lane=lane; this.y=-60; this.hasCoins=Math.random()<0.5; }
-  update(){ this.y+=gameSpeed; }
-  draw(){
-    ctx.fillStyle="gray"; ctx.fillRect(laneX[this.lane]-40,this.y,80,60);
-    if(this.hasCoins) { ctx.fillStyle="gold"; ctx.beginPath(); ctx.arc(laneX[this.lane],this.y-10,10,0,2*Math.PI); ctx.fill(); }
-  }
-}
+  // Assets placeholders for characters and hoverboards (text-based)
+  const characters = [
+    { id: "default", label: "😎" },
+    { id: "ninja", label: "🥷" },
+    { id: "robot", label: "🤖" },
+  ];
 
-class Coin {
-  constructor(lane,y){ this.lane=lane; this.y=y; }
-  update(){ this.y+=gameSpeed; }
-  draw(){ ctx.fillStyle="yellow"; ctx.beginPath(); ctx.arc(laneX[this.lane],this.y,10,0,2*Math.PI); ctx.fill(); }
-}
+  const hoverboards = [
+    { id: "default", label: "🛹" },
+    { id: "fire", label: "🔥" },
+    { id: "ice", label: "❄️" },
+  ];
 
-// ——— Shop Logic ——————————————————————————— //
-function selectChar(n){ char=n; localStorage.setItem("character",n); }
-function selectBoard(n){ board=n; localStorage.setItem("hoverboard",n); }
-function startGame(){ document.getElementById("shopScreen").style.display="none"; canvas.style.display="block"; }
-
-// ——— Spawn Logic ——————————————————————————— //
-function spawnTrain(){ trains.push(new Train(Math.floor(Math.random()*3))); }
-function spawnCoin(){ coins.push(new Coin(Math.floor(Math.random()*3), -20)); }
-
-// ——— Collisions ——————————————————————————— //
-function checkCollisions(){
-  trains.forEach((t,i)=>{
-    if(t.lane===playerLane && t.y+60>y+jumpY && t.y<y+50+jumpY){
-      if(!hoverboardActive){ health--; trains.splice(i,1); if(health<=0) gameOver(); }
+  class Player {
+    constructor(game) {
+      this.game = game;
+      this.lane = 1;
+      this.x = laneX[this.lane];
+      this.y = canvasHeight - 100;
+      this.targetX = this.x;
+      this.jumpY = 0;
+      this.isJumping = false;
+      this.velY = 0;
+      this.health = 3;
+      this.hoverboardActive = false;
+      this.hoverboardTimer = 0;
+      this.score = 0;
+      this.width = 40;
+      this.height = 50;
+      this.character = "default";
+      this.hoverboard = "default";
     }
-  });
-  coins.forEach((c,i)=>{
-    if(c.lane===playerLane && c.y+10>y+jumpY && c.y<y+50+jumpY){ score+=100; coins.splice(i,1); }
 
-  });
-}
+    update(deltaTime) {
+      this.x += (this.targetX - this.x) * 0.2;
 
-// ——— Game Over ———————————————————————————— //
-function gameOver(){ alert(`Game Over! Score:${score}`); location.reload(); }
+      if (this.isJumping) {
+        this.jumpY += this.velY;
+        this.velY += gravity;
+        if (this.jumpY >= 0) {
+          this.jumpY = 0;
+          this.isJumping = false;
+        }
+      }
 
-// ——— Update & Draw —————————————————————————— //
-function update(){
-  if(isJump){ jumpY+=velY; velY+=1; if(jumpY>=0){ jumpY=0; isJump=false; } }
-  if(hoverboardActive && --hoverboardTimer<=0) hoverboardActive=false;
-  gameSpeed = 5 + Math.floor(score/1000);
-  if(Math.random() < 0.02 + score/20000) spawnTrain();
-  if(Math.random() < 0.02) spawnCoin();
-  trains.forEach(t=>t.update()); coins.forEach(c=>c.update());
-  checkCollisions();
-  trains = trains.filter(t => t.y < canvas.height);
-  coins = coins.filter(c => c.y < canvas.height);
-  score++;
+      if (this.hoverboardActive) {
+        this.hoverboardTimer -= deltaTime;
+        if (this.hoverboardTimer <= 0) {
+          this.hoverboardActive = false;
+          this.hoverboardTimer = 0;
+        }
+      }
+    }
 
-}
+    jump() {
+      if (!this.isJumping) {
+        this.isJumping = true;
+        this.velY = -15;
+      }
+    }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="blue"; ctx.fillRect(laneX[playerLane]-20, y+jumpY, 40, 50);
-  trains.forEach(t=>t.draw()); coins.forEach(c=>c.draw());
-  // HUD
-  ctx.fillStyle="black"; ctx.font="20px Arial";
-  ctx.fillText(`Score:${score}`,10,30);
-  ctx.fillText(`Health:${health}`,10,60);
-  if(hoverboardActive) ctx.fillText(`Hover:${(hoverboardTimer/60).toFixed(1)}s`,10,90);
-}
+    moveLeft() {
+      if (this.lane > 0) {
+        this.lane--;
+        this.targetX = laneX[this.lane];
+      }
+    }
 
-function gameLoop(){ update(); draw(); requestAnimationFrame(gameLoop); }
+    moveRight() {
+      if (this.lane < laneCount - 1) {
+        this.lane++;
+        this.targetX = laneX[this.lane];
+      }
+    }
 
-// ——— Start ———————————————————————————————— //
-canvas.style.display = 'none';
-document.getElementById("shopScreen").style.display = 'block';
-function drawBackground() {
-  // Draw track base
-  ctx.fillStyle = "#444"; // dark gray for track
-  ctx.fillRect(80, 0, 320, canvas.height);
+    activateHoverboard() {
+      if (!this.hoverboardActive) {
+        this.hoverboardActive = true;
+        this.hoverboardTimer = hoverboardDuration;
+      }
+    }
 
-  // Draw rails
-  ctx.strokeStyle = "#bbb";
-  ctx.lineWidth = 6;
-  for (let i = 0; i < canvas.height; i += 40) {
-    // Left rail
-    ctx.beginPath();
-    ctx.moveTo(100, i);
-    ctx.lineTo(100, i + 20);
-    ctx.stroke();
-    // Right rail
-    ctx.beginPath();
-    ctx.moveTo(360, i);
-    ctx.lineTo(360, i + 20);
-    ctx.stroke();
+    draw(ctx) {
+      ctx.save();
+      ctx.translate(this.x, this.y + this.jumpY);
+
+      // Draw hoverboard effect if active
+      if (this.hoverboardActive) {
+        const glowAlpha = 0.6 + 0.4 * Math.sin(Date.now() / 100);
+        ctx.shadowColor = "yellow";
+        ctx.shadowBlur = 20;
+        ctx.globalAlpha = glowAlpha;
+        ctx.fillRect(-25, 15, 50, 10);
+        ctx.globalAlpha = 1;
+      }
+
+      // Draw player box (or emoji)
+      ctx.fillStyle = "#3498db";
+      ctx.fillRect(-this.width / 2, -this.height, this.width, this.height);
+
+      ctx.font = "36px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "white";
+
+      // Character emoji on player
+      let emoji = characters.find(c => c.id === this.character)?.label || "😎";
+      ctx.fillText(emoji, 0, -this.height / 2);
+
+      ctx.restore();
+    }
   }
 
-  // Draw cross ties (horizontal wooden beams)
-  ctx.strokeStyle = "#86592d";
-  ctx.lineWidth = 8;
-  for (let y = 0; y < canvas.height; y += 40) {
-    ctx.beginPath();
-    ctx.moveTo(100, y + 10);
-    ctx.lineTo(360, y + 10);
-    ctx.stroke();
-  }
-}
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawBackground();
+  class Train {
+    constructor(game, lane) {
+      this.game = game;
+      this.lane = lane;
+      this.x = laneX[lane];
+      this.y = -80;
+      this.width = 80;
+      this.height = 60;
+      this.speed = game.gameSpeed;
+      this.hasCoins = Math.random() < 0.5;
+    }
 
-  // Draw player, trains, coins...
-  ctx.fillStyle = "blue";
-  ctx.fillRect(laneX[playerLane] - 20, y + jumpY, 40, 50);
+    update(deltaTime) {
+      this.y += this.speed * deltaTime;
+    }
 
-  trains.forEach(t => t.draw());
-  coins.forEach(c => c.draw());
+    draw(ctx) {
+      ctx.save();
+      ctx.fillStyle = "#555555";
+      ctx.fillRect(this.x - this.width / 2, this.y, this.width, this.height);
 
-  // HUD...
-}
-const fullscreenBtn = document.getElementById("fullscreenBtn");
+      // Windows
+      ctx.fillStyle = "#222";
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(this.x - 30 + i * 25, this.y + 15, 20, 20);
+      }
 
-fullscreenBtn.addEventListener("click", () => {
-  if (!document.fullscreenElement) {
-    canvas.requestFullscreen().catch(err => {
-      alert(`Error attempting to enable full-screen mode: ${err.message}`);
-    });
-  } else {
-    document.exitFullscreen();
-  }
-});
-let trackOffset = 0;
+      if (this.hasCoins) {
+        ctx.fillStyle = "gold";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y - 15, 12, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-function drawBackground() {
-  // Track base
-  ctx.fillStyle = "#444";
-  ctx.fillRect(80, 0, 320, canvas.height);
-
-  // Rails
-  ctx.strokeStyle = "#bbb";
-  ctx.lineWidth = 6;
-  for (let i = 0; i < canvas.height; i += 40) {
-    let y = (i + trackOffset) % canvas.height;
-    // Left rail dashed segment
-    ctx.beginPath();
-    ctx.moveTo(100, y);
-    ctx.lineTo(100, y + 20);
-    ctx.stroke();
-
-    // Right rail dashed segment
-    ctx.beginPath();
-    ctx.moveTo(360, y);
-    ctx.lineTo(360, y + 20);
-    ctx.stroke();
+      ctx.restore();
+    }
   }
 
-  // Cross ties
-  ctx.strokeStyle = "#86592d";
-  ctx.lineWidth = 8;
-  for (let y = 0; y < canvas.height; y += 40) {
-    let tieY = (y + trackOffset) % canvas.height;
-    ctx.beginPath();
-    ctx.moveTo(100, tieY + 10);
-    ctx.lineTo(360, tieY + 10);
-    ctx.stroke();
+  class Coin {
+    constructor(game, lane, y) {
+      this.game = game;
+      this.lane = lane;
+      this.x = laneX[lane];
+      this.y = y;
+      this.radius = 10;
+      this.speed = game.gameSpeed;
+      this.angle = 0;
+    }
+
+    update(deltaTime) {
+      this.y += this.speed * deltaTime;
+      this.angle += 0.1;
+    }
+
+    draw(ctx) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.fillStyle = "gold";
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Coin inner details
+      ctx.strokeStyle = "#ffeb3b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-5, 0);
+      ctx.lineTo(5, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
   }
-}
 
-// Update track offset inside update() or gameLoop()
-function update() {
-  // Existing update code ...
-
-  trackOffset += gameSpeed;
-  if (trackOffset > 40) trackOffset -= 40;
-
-  // The rest of update...
-}
+  class Game {
+    constructor() {
+      this.player = new Player(this);
+      this.trains = [];
+      this.coins = [];
+      this.lastTime = 0;
+      this.spawnTimer = 0;
+      this.spawnInterval = 1500; // ms
+      this.gameSpeed = 0.3; // pixels/ms ~ 300 px/s
+      this.score = 0;
+      this.health = 3;
+      this.state = "shop"; // "shop", "playing", "gameover"
+      this

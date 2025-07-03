@@ -1,0 +1,61 @@
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(to bottom, #333, #111);
+  font-family: Arial, sans-serif;
+  color: #fff;
+}
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to top, #2c3e50, #34495e);
+}
+button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 1000;
+}
+.overlay {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  padding: 30px;
+  border-radius: 10px;
+  z-index: 1001;
+}
+.overlay.hidden {
+  display: none;
+}
+#characters, #hoverboards {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+.selectable {
+  background: #555;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.selectable.selected {
+  background: #f39c12;
+  color: black;
+}

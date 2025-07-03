@@ -1,0 +1,83 @@
+
+* {
+  box-sizing: border-box;
+}
+body, html {
+  margin: 0; padding: 0;
+  background: #222;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+  overflow: hidden;
+}
+canvas {
+  border: 3px solid white;
+  background: linear-gradient(#666, #222);
+  display: none;
+  touch-action: none;
+}
+button {
+  cursor: pointer;
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+  background: #444;
+  color: white;
+  transition: background 0.3s ease;
+}
+button:hover {
+  background: #666;
+}
+#fullscreenBtn {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 999;
+}
+.overlay {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: #333;
+  padding: 20px 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px black;
+  text-align: center;
+  z-index: 1000;
+}
+.overlay.hidden {
+  display: none;
+}
+#characters, #hoverboards {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 10px 0;
+}
+.selectable {
+  width: 60px; height: 60px;
+  border-radius: 10px;
+  border: 3px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  font-weight: bold;
+  font-size: 20px;
+  background: #555;
+  color: white;
+  transition: border-color 0.3s ease;
+}
+.selectable.selected {
+  border-color: #f4c542;
+}
+#gameOverScreen p {
+  font-size: 20px;
+  margin: 20px 0;
+}
